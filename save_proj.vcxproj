@@ -139,7 +139,9 @@
     <None Include="input.txt" />
     <None Include="rule1.csv" />
     <None Include="Rule1Query.sql" />
+    <None Include="rule2.csv" />
     <None Include="Rule2Query.sql" />
+    <None Include="savedump.sql" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

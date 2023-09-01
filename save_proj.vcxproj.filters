@@ -30,5 +30,7 @@
     <None Include="Rule2Query.sql">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="rule2.csv" />
+    <None Include="savedump.sql" />
   </ItemGroup>
 </Project>
