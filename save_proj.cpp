@@ -45,7 +45,6 @@ struct Rule1Row {
             << purchase_number << ','
             << merchant_name << ','
             << purchase_amount;
-
         return ss.str();
     }
 };
@@ -91,10 +90,8 @@ void add_flagged(const vector<Rule1Row>& purchases, vector<Rule1Row>& flagged_pu
 }
 
 void run_rule_1(sql::Statement* stmt) {
-    stmt->clearAttributes();
-    stmt->clearWarnings();
-    string query1 = str_from_file(Rule1QueryFile);
-    sql::ResultSet* res = stmt->executeQuery(query1);
+    string query = str_from_file(Rule1QueryFile);
+    sql::ResultSet* res = stmt->executeQuery(query);
    
     unordered_map<string, vector<Rule1Row>> recurring_purchases;
 
@@ -119,25 +116,63 @@ void run_rule_1(sql::Statement* stmt) {
 
     delete res;
 }
-/*
-void run_rule_2() {
-    stmt->clearAttributes();
-    stmt->clearWarnings();
 
+const string rule_2_header = "last_name,first_name,account_number,purchase_number,account_state,merchant_state";
+struct Rule2Row {
+    string last_name;
+    string first_name;
+    int account_number;
+    int purchase_number;
+    string account_state;
+    string merchant_state;
 
+    Rule2Row(sql::ResultSet* res) {
+        last_name = res->getString("last_name");
+        first_name = res->getString("first_name");
+        account_number = res->getInt("account_number");
+        purchase_number = res->getInt("purchase_number");
+        account_state = res->getString("account_state");
+        merchant_state = res->getString("merchant_state");
+    }
+
+    string csv() {
+        stringstream ss;
+        ss << last_name << ','
+            << first_name << ','
+            << account_number << ','
+            << purchase_number << ','
+            << account_state << ','
+            << merchant_state;
+        return ss.str();
+    }
+};
+
+void run_rule_2(sql::Statement* stmt) {
+    string query = str_from_file(Rule2QueryFile);
+    sql::ResultSet* res = stmt->executeQuery(query);
+
+    cout << rule_2_header << endl;
+    while (res->next()) {
+        Rule2Row row(res);
+        cout << row.csv() << endl;
+    }
+
+    delete res;
 }
-*/
+
 int main()
 {
     string url;
     string username;
     string password;
     string db;
+    int ruleToRun;
 
     cin >> url
         >> username
         >> password
-        >> db;
+        >> db
+        >> ruleToRun;
 
     sql::Driver* driver;
     sql::Connection* con;
@@ -147,10 +182,15 @@ int main()
     con = driver->connect(url, username, password);
     con->setSchema(db);
     stmt = con->createStatement();
-    
 
-    run_rule_1(stmt);
-    //run_rule_2();
+    switch (ruleToRun) {
+        case 1:
+            run_rule_1(stmt);
+            break;
+        case 2:
+            run_rule_2(stmt);
+            break;
+    }
 
     delete stmt;
     delete con;

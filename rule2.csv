@@ -1,0 +1,17 @@
+last_name,first_name,account_number,purchase_number,account_state,merchant_state
+Smith,Michael,11111,25,TX,FL
+Doe,John,22222,10,CA,NY
+Doe,Jane,33333,2,NY,NJ
+Abel,Monica,33555,13,NY,CA
+Green,Ruth,37222,1,OH,CA
+Green,Ruth,37222,2,OH,CA
+Green,Ruth,37222,3,OH,CA
+Green,Ruth,37222,4,OH,CA
+Green,Ruth,37222,5,OH,CA
+Green,Ruth,37222,6,OH,GA
+Dark,Joseph,43991,16,MI,NY
+Venn,Artie,44891,10,NJ,NY
+Fuller,Don,53111,16,OH,NY
+West,Anthony,54891,7,SD,MD
+West,Anthony,54891,10,SD,NY
+West,Anthony,54891,13,SD,CA

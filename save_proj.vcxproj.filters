@@ -23,9 +23,12 @@
     <None Include="Rule1Query.sql">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include=".env">
+    <None Include="input.txt">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="rule1.csv" />
+    <None Include="Rule2Query.sql">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

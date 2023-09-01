@@ -136,9 +136,10 @@
     <ClCompile Include="save_proj.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".env" />
+    <None Include="input.txt" />
     <None Include="rule1.csv" />
     <None Include="Rule1Query.sql" />
+    <None Include="Rule2Query.sql" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
