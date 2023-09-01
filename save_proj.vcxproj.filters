@@ -26,5 +26,6 @@
     <None Include=".env">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="rule1.csv" />
   </ItemGroup>
 </Project>

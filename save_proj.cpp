@@ -8,20 +8,13 @@
 #include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
 #include <typeinfo>
+#include <Windows.h>
 using namespace std;
 
 const string Rule1QueryFile = "Rule1Query.sql";
 const string Rule2QueryFile = "Rule2Query.sql";
 
-const size_t ReqPurchasesToFlag = 4;
-
-sql::Driver* driver;
-sql::Connection* con;
-sql::Statement* stmt;
-sql::ResultSet* res;
-
 const string rule_1_header = "last_name,first_name,account_number,purchase_number,merchant_name,purchase_amount";
-
 struct Rule1Row {
     string last_name;
     string first_name;
@@ -37,13 +30,14 @@ struct Rule1Row {
         purchase_number = res->getInt("purchase_number");
         merchant_name = res->getString("merchant_name");
         purchase_amount = res->getDouble("purchase_amount");
+        //purchase_amount = abs(purchase_amount);
     }
 
     string hash() {
         return merchant_name + to_string(account_number);
     }
 
-    stringbuf* csv() {
+    string csv() {
         stringstream ss;
         ss << last_name << ','
             << first_name << ','
@@ -52,7 +46,7 @@ struct Rule1Row {
             << merchant_name << ','
             << purchase_amount;
 
-        return ss.rdbuf();
+        return ss.str();
     }
 };
 
@@ -63,14 +57,15 @@ string str_from_file(string filename) {
     return str;
 }
 
-void add_flagged(const vector<Rule1Row>& purchases, vector<Rule1Row>& flagged_purchases, const double bound) {
-    for (Rule1Row row : purchases) {
-        if (row.purchase_amount < bound) continue;
-        flagged_purchases.push_back(row);
-    }
-}
+const double iqr_mult = 1.5;
+const double bound_padding = 100;
 
-double fraud_bound(const vector<Rule1Row>& purchases) {
+struct FraudBound {
+    double lower;
+    double upper;
+};
+
+FraudBound fraud_bound(const vector<Rule1Row>& purchases) {
     size_t s = purchases.size();
     double q1 = purchases[s / 4].purchase_amount;
     double q3 = purchases[3 * s / 4].purchase_amount;
@@ -78,14 +73,28 @@ double fraud_bound(const vector<Rule1Row>& purchases) {
     // Calculate IQR
     double iqr = q3 - q1;
 
-    return q3 + 1.5 * iqr;
+    FraudBound fb;
+
+    fb.lower = (q1 - iqr_mult * iqr) - bound_padding;
+    fb.upper = (q3 + iqr_mult * iqr) + bound_padding;
+    
+    return fb;
 }
 
-void run_rule_1() {
+const size_t ReqPurchasesToFlag = 4;
+
+void add_flagged(const vector<Rule1Row>& purchases, vector<Rule1Row>& flagged_purchases, const FraudBound fb) {
+    for (Rule1Row row : purchases) {
+        if (row.purchase_amount > fb.lower && row.purchase_amount < fb.upper) continue;
+        flagged_purchases.push_back(row);
+    }
+}
+
+void run_rule_1(sql::Statement* stmt) {
     stmt->clearAttributes();
     stmt->clearWarnings();
     string query1 = str_from_file(Rule1QueryFile);
-    res = stmt->executeQuery(query1);
+    sql::ResultSet* res = stmt->executeQuery(query1);
    
     unordered_map<string, vector<Rule1Row>> recurring_purchases;
 
@@ -99,7 +108,7 @@ void run_rule_1() {
     for (const auto& recurring_purchase : recurring_purchases) {
         const vector<Rule1Row>& purchases = recurring_purchase.second;
         if (purchases.size() < ReqPurchasesToFlag) continue;
-        double bound = fraud_bound(purchases);
+        FraudBound bound = fraud_bound(purchases);
         add_flagged(purchases, flagged_purchases, bound);
     }
 
@@ -107,32 +116,42 @@ void run_rule_1() {
     for (Rule1Row row : flagged_purchases) {
         cout << row.csv() << endl;
     }
-}
 
+    delete res;
+}
+/*
 void run_rule_2() {
     stmt->clearAttributes();
     stmt->clearWarnings();
 
 
 }
-
+*/
 int main()
 {
     string url;
     string username;
     string password;
+    string db;
 
-    cin >> url >> username >> password;
+    cin >> url
+        >> username
+        >> password
+        >> db;
+
+    sql::Driver* driver;
+    sql::Connection* con;
+    sql::Statement* stmt;
 
     driver = sql::mysql::get_mysql_driver_instance();
     con = driver->connect(url, username, password);
-
+    con->setSchema(db);
     stmt = con->createStatement();
-   
-    run_rule_1();
-    run_rule_2();
+    
 
-    delete res;
+    run_rule_1(stmt);
+    //run_rule_2();
+
     delete stmt;
     delete con;
 }
