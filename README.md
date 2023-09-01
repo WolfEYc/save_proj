@@ -1,3 +1,3 @@
 # save_proj
 
-Transaction fraud detection program written in CPP for [https://joinsave.com/](Save)
+Transaction fraud detection program written in CPP for [Save](https://joinsave.com/)
